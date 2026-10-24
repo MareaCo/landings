@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>AHA · Cuéntanos</title>
+<meta name="description" content="Formulario de AHA. Toma unos minutos.">
+<meta name="theme-color" content="#0B2A2E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Figtree:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout: una sola pantalla; el mar se mueve al fondo, las preguntas entran de a una como olas. */
+:root{
+  --sea:#0B2A2E;        /* fondo profundo */
+  --sea-2:#123C41;      /* superficies */
+  --foam:#EAF3EF;       /* texto principal */
+  --mist:#9DB8B3;       /* texto secundario */
+  --sun:#F4B942;        /* acento */
+  --sun-ink:#2A1D02;    /* texto sobre acento */
+  --line:rgba(234,243,239,.18);
+  --err:#FF9A8A;
+  --display:"Bricolage Grotesque", "Avenir Next", system-ui, sans-serif;
+  --body:"Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --ease:cubic-bezier(.2,.8,.2,1);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+.campo:focus-visible{outline:none}
+html,body{height:100%;margin:0}
+body{
+  background:var(--sea);color:var(--foam);font:400 17px/1.55 var(--body);
+  -webkit-font-smoothing:antialiased;overflow-x:hidden;
+}
+canvas#mar{position:fixed;inset:0;width:100%;height:100%;z-index:0;pointer-events:none}
+.grain{position:fixed;inset:0;z-index:1;pointer-events:none;opacity:.07;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+.shell{
+  position:relative;z-index:2;min-height:100%;display:flex;flex-direction:column;
+  padding-left:max(20px,env(safe-area-inset-left,0px));padding-right:max(20px,env(safe-area-inset-right,0px));
+  padding-block:max(20px,env(safe-area-inset-top,0px)) max(20px,env(safe-area-inset-bottom,0px));
+  max-width:760px;margin:0 auto;
+}
+header{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:44px}
+.logo{font:800 22px/1 var(--display);letter-spacing:.02em;color:var(--foam);text-decoration:none}
+.logo b{color:var(--sun)}
+.paso{font:500 13px/1 var(--body);letter-spacing:.08em;text-transform:uppercase;color:var(--mist);font-variant-numeric:tabular-nums}
+
+.barra{height:3px;background:var(--line);border-radius:3px;overflow:hidden;margin-top:14px}
+.barra i{display:block;height:100%;width:0;background:var(--sun);transition:width .6s var(--ease)}
+
+main{flex:1;display:grid;align-items:center;padding-block:28px}
+.vista{grid-area:1/1;min-width:0}
+.vista[hidden]{display:none!important}
+
+/* entrada tipo ola */
+.ola>*{opacity:0;transform:translateY(28px);animation:sube .8s var(--ease) forwards}
+.ola>*:nth-child(2){animation-delay:.08s}
+.ola>*:nth-child(3){animation-delay:.16s}
+.ola>*:nth-child(4){animation-delay:.24s}
+.ola>*:nth-child(5){animation-delay:.32s}
+@keyframes sube{to{opacity:1;transform:none}}
+.sale>*{animation:baja .35s var(--ease) forwards}
+@keyframes baja{to{opacity:0;transform:translateY(-22px)}}
+
+.eyebrow{font:600 13px/1 var(--body);letter-spacing:.12em;text-transform:uppercase;color:var(--sun);margin:0 0 18px}
+h1{font:800 clamp(40px,9vw,76px)/.98 var(--display);letter-spacing:-.02em;margin:0 0 20px;text-wrap:balance}
+h1 em{font-style:normal;color:var(--sun)}
+.lead{color:var(--mist);font-size:19px;max-width:34ch;margin:0 0 32px}
+.meta{display:flex;flex-wrap:wrap;gap:8px 20px;color:var(--mist);font-size:14px;margin-top:22px}
+
+h2{font:600 clamp(28px,6vw,44px)/1.1 var(--display);letter-spacing:-.01em;margin:0 0 10px;text-wrap:balance}
+.ayuda{color:var(--mist);margin:0 0 26px;max-width:46ch}
+.num{font:600 15px/1 var(--display);color:var(--sun);margin:0 0 14px;display:flex;align-items:center;gap:8px}
+.num::after{content:"→";font-family:var(--body)}
+
+.campo{width:100%;background:transparent;border:0;border-bottom:2px solid var(--line);color:var(--foam);
+  font:500 clamp(22px,4.5vw,30px)/1.3 var(--body);padding:10px 2px 12px;outline:none;transition:border-color .25s}
+.campo::placeholder{color:rgba(157,184,179,.55)}
+.campo:focus{border-bottom-color:var(--sun)}
+textarea.campo{resize:none;min-height:120px;font-size:clamp(19px,3.6vw,23px)}
+.campo[aria-invalid="true"]{border-bottom-color:var(--err)}
+.error{color:var(--err);font-size:15px;min-height:22px;margin:10px 0 0}
+
+.opciones{display:grid;gap:10px}
+.opcion{display:flex;align-items:center;gap:14px;text-align:left;width:100%;cursor:pointer;
+  background:rgba(234,243,239,.04);border:1.5px solid var(--line);color:var(--foam);border-radius:12px;
+  padding:14px 16px;font:500 18px/1.3 var(--body);transition:border-color .2s,background .2s,transform .2s}
+.opcion:hover{border-color:var(--mist);transform:translateX(3px)}
+.opcion kbd{font:600 12px/1 var(--body);border:1px solid var(--line);border-radius:6px;padding:5px 7px;color:var(--mist)}
+.opcion[aria-pressed="true"]{border-color:var(--sun);background:rgba(244,185,66,.12)}
+.opcion[aria-pressed="true"] kbd{background:var(--sun);color:var(--sun-ink);border-color:var(--sun)}
+
+.acciones{display:flex;flex-wrap:wrap;align-items:center;gap:14px 20px;margin-top:28px}
+.btn{appearance:none;border:0;cursor:pointer;border-radius:999px;font:600 17px/1 var(--body);
+  padding:16px 26px;display:inline-flex;align-items:center;gap:10px;transition:transform .2s var(--ease),box-shadow .2s,background .2s}
+.btn-sol{background:var(--sun);color:var(--sun-ink);box-shadow:0 10px 30px -10px rgba(244,185,66,.6)}
+.btn-sol:hover{transform:translateY(-2px);box-shadow:0 14px 34px -10px rgba(244,185,66,.75)}
+.btn-sol:active{transform:translateY(0)}
+.btn-sol[disabled]{opacity:.6;cursor:wait;transform:none}
+.btn-ghost{background:transparent;color:var(--mist);padding:12px 4px}
+.btn-ghost:hover{color:var(--foam)}
+.pista{color:var(--mist);font-size:14px}
+.pista b{color:var(--foam);font-weight:600}
+:focus-visible{outline:2px solid var(--sun);outline-offset:3px;border-radius:6px}
+
+.ok-ico{width:84px;height:84px;margin-bottom:22px}
+.ok-ico circle{stroke:var(--sun);stroke-width:3;fill:none;stroke-dasharray:240;stroke-dashoffset:240;animation:trazo 1s var(--ease) .1s forwards}
+.ok-ico path{stroke:var(--sun);stroke-width:4;fill:none;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:60;stroke-dashoffset:60;animation:trazo .6s var(--ease) .8s forwards}
+@keyframes trazo{to{stroke-dashoffset:0}}
+
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+footer{color:var(--mist);font-size:13px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+@media (max-width:480px){
+  body{font-size:16px}
+  .lead{font-size:17px}
+  .acciones .pista{display:none}
+}
+@media (prefers-reduced-motion:reduce){
+  .ola>*,.sale>*{animation:none!important;opacity:1;transform:none}
+  .ok-ico circle,.ok-ico path{animation:none;stroke-dashoffset:0}
+  .barra i{transition:none}
+}
+</style>
+</head>
+<body>
+<canvas id="mar" aria-hidden="true"></canvas>
+<div class="grain" aria-hidden="true"></div>
+
+<div class="shell">
+  <header>
+    <a class="logo" href="#" aria-label="AHA">AH<b>A</b></a>
+    <span class="paso" id="paso" aria-live="polite"></span>
+  </header>
+  <div class="barra" aria-hidden="true"><i id="progreso"></i></div>
+
+  <main>
+    <!-- Portada -->
+    <section class="vista ola" id="v-inicio">
+      <p class="eyebrow">AHA · HumanAI First</p>
+      <h1>Queremos <em>escucharte</em>.</h1>
+      <p class="lead">Son unas pocas preguntas. Te toma menos de tres minutos y tus respuestas llegan directo a nuestro equipo.</p>
+      <div class="acciones">
+        <button class="btn btn-sol" id="empezar" type="button">Empezar <span aria-hidden="true">→</span></button>
+        <span class="pista">o presiona <b>Enter ↵</b></span>
+      </div>
+      <p class="error" id="sin-js">Si el botón no responde, abre este enlace en Safari o Chrome: la vista previa de WhatsApp no ejecuta el formulario.</p>
+      <div class="meta"><span>⏱ Menos de 3 minutos</span><span>🔒 Solo AHA ve tus respuestas</span></div>
+    </section>
+
+    <!-- Pregunta (se reutiliza) -->
+    <form class="vista" id="v-pregunta" hidden novalidate>
+      <div id="q"></div>
+      <label class="hp" aria-hidden="true">No llenar <input id="sitio" tabindex="-1" autocomplete="off"></label>
+      <p class="error" id="error" role="alert"></p>
+      <div class="acciones">
+        <button class="btn btn-sol" id="siguiente" type="submit">Siguiente <span aria-hidden="true">→</span></button>
+        <button class="btn btn-ghost" id="atras" type="button">← Atrás</button>
+        <span class="pista" id="pista-enter">presiona <b>Enter ↵</b></span>
+      </div>
+    </form>
+
+    <!-- Gracias -->
+    <section class="vista" id="v-gracias" hidden>
+      <svg class="ok-ico" viewBox="0 0 84 84" aria-hidden="true"><circle cx="42" cy="42" r="38"/><path d="M26 43l11 11 22-24"/></svg>
+      <h1 id="gracias-titulo">¡Gracias!</h1>
+      <p class="lead">Recibimos tus respuestas. Si hace falta algo más, te contactamos.</p>
+    </section>
+  </main>
+
+  <footer><span>© AHA</span><span>Tus datos se usan solo para este proceso.</span></footer>
+</div>
+
+<script>
+/* ===================== CONFIGURACIÓN ===================== */
+const SUPABASE_URL = "https://ttxmcollwqbljzqwobae.supabase.co";
+const SUPABASE_KEY = "sb_publishable_r97eXQFDWgfmsw707xKi7g_gQR-_LHe"; // clave pública: solo permite enviar
+const FORMULARIO   = "CAMBIAR-SLUG"; // etiqueta para distinguir esta landing en la base
+
+/* Preguntas provisionales. Tipos: texto, correo, telefono, largo, opciones.
+   "columna" = guarda en su propia columna (nombre, correo, telefono); el resto va a "respuestas". */
+const PREGUNTAS = [
+  { id:"nombre",   columna:"nombre",   tipo:"texto",    titulo:"¿Cómo te llamas?", ayuda:"Nombre y apellido.", placeholder:"Escribe tu nombre", requerida:true },
+  { id:"correo",   columna:"correo",   tipo:"correo",   titulo:"¿A qué correo te escribimos?", placeholder:"nombre@empresa.com", requerida:true },
+  { id:"telefono", columna:"telefono", tipo:"telefono", titulo:"¿Y un WhatsApp?", ayuda:"Opcional. Incluye el indicativo si no es de Colombia.", placeholder:"300 000 0000", requerida:false },
+  { id:"empresa",  tipo:"texto",  titulo:"¿Dónde trabajas?", ayuda:"Empresa u organización.", placeholder:"Nombre de la empresa", requerida:false },
+  { id:"respuesta",tipo:"largo",  titulo:"Cuéntanos lo principal", ayuda:"Lo que quieras que sepamos. No hay respuestas incorrectas.", placeholder:"Escribe aquí…", requerida:true },
+  { id:"comentarios", tipo:"largo", titulo:"¿Algo más que quieras agregar?", placeholder:"Opcional", requerida:false }
+];
+/* ========================================================= */
+
+const $ = s => document.querySelector(s);
+$("#sin-js").hidden = true;
+const vistas = { inicio:$("#v-inicio"), pregunta:$("#v-pregunta"), gracias:$("#v-gracias") };
+const datos = {};
+let i = -1, enviando = false;
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function mostrar(nombre, contenedor){
+  Object.entries(vistas).forEach(([k,v]) => v.hidden = k !== nombre);
+  const el = contenedor || vistas[nombre];
+  el.classList.remove("ola"); void el.offsetWidth; el.classList.add("ola");
+}
+function salir(el, cb){
+  if (reduce) return cb();
+  el.classList.add("sale");
+  setTimeout(() => { el.classList.remove("sale"); cb(); }, 300);
+}
+function progreso(){
+  const total = PREGUNTAS.length;
+  const hecho = i < 0 ? 0 : (i >= total ? total : i);
+  $("#progreso").style.width = (hecho / total * 100) + "%";
+  $("#paso").textContent = (i >= 0 && i < total) ? `${i+1} / ${total}` : "";
+}
+
+function pintar(){
+  const p = PREGUNTAS[i];
+  const q = $("#q");
+  q.innerHTML = "";
+  q.className = "ola";
+  const num = document.createElement("p"); num.className="num"; num.textContent = i+1; q.append(num);
+  const h = document.createElement("h2"); h.id="q-titulo"; h.textContent = p.titulo + (p.requerida ? "" : ""); q.append(h);
+  if (p.ayuda){ const a=document.createElement("p"); a.className="ayuda"; a.textContent=p.ayuda; q.append(a); }
+
+  let control;
+  if (p.tipo === "opciones"){
+    control = document.createElement("div"); control.className="opciones"; control.setAttribute("role","group"); control.setAttribute("aria-labelledby","q-titulo");
+    p.opciones.forEach((op, k) => {
+      const b = document.createElement("button"); b.type="button"; b.className="opcion";
+      b.setAttribute("aria-pressed", datos[p.id] === op ? "true" : "false");
+      const kb = document.createElement("kbd"); kb.textContent = String.fromCharCode(65+k);
+      b.append(kb, document.createTextNode(op));
+      b.onclick = () => { datos[p.id] = op; avanzar(); };
+      control.append(b);
+    });
+  } else {
+    control = document.createElement(p.tipo === "largo" ? "textarea" : "input");
+    control.className = "campo"; control.id = "campo-" + p.id;
+    control.setAttribute("aria-labelledby","q-titulo");
+    control.placeholder = p.placeholder || "";
+    if (p.tipo !== "largo"){
+      control.type = p.tipo === "correo" ? "email" : (p.tipo === "telefono" ? "tel" : "text");
+      control.autocomplete = { nombre:"name", correo:"email", telefono:"tel", empresa:"organization" }[p.id] || "off";
+      control.maxLength = 200;
+    } else { control.maxLength = 4000; control.rows = 4; }
+    control.value = datos[p.id] || "";
+    control.addEventListener("input", () => { control.removeAttribute("aria-invalid"); $("#error").textContent=""; });
+  }
+  q.append(control);
+
+  $("#error").textContent = "";
+  $("#atras").hidden = i === 0;
+  const ultima = i === PREGUNTAS.length - 1;
+  $("#siguiente").innerHTML = ultima ? 'Enviar <span aria-hidden="true">✓</span>' : 'Siguiente <span aria-hidden="true">→</span>';
+  $("#siguiente").hidden = p.tipo === "opciones" && !datos[p.id];
+  $("#pista-enter").innerHTML = p.tipo === "largo" ? "<b>Ctrl + Enter ↵</b> para seguir" : "presiona <b>Enter ↵</b>";
+  progreso();
+  if (control.focus) setTimeout(() => control.focus({preventScroll:true}), reduce ? 0 : 250);
+}
+
+function validar(){
+  const p = PREGUNTAS[i];
+  if (p.tipo === "opciones") return !!datos[p.id] || !p.requerida;
+  const c = $("#campo-" + p.id);
+  const v = c.value.trim();
+  let msg = "";
+  if (p.requerida && !v) msg = "Esta respuesta es necesaria para continuar.";
+  else if (v && p.tipo === "correo" && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) msg = "Revisa el correo: parece incompleto.";
+  else if (v && p.tipo === "telefono" && v.replace(/\D/g,"").length < 7) msg = "Revisa el número: debe tener al menos 7 dígitos.";
+  if (msg){ $("#error").textContent = msg; c.setAttribute("aria-invalid","true"); c.focus(); return false; }
+  datos[p.id] = v;
+  return true;
+}
+
+function avanzar(){
+  if (enviando) return;
+  if (!validar()) return;
+  if (i === PREGUNTAS.length - 1) return enviar();
+  salir($("#q"), () => { i++; pintar(); });
+}
+function retroceder(){
+  if (i <= 0) return;
+  const p = PREGUNTAS[i];
+  const c = $("#campo-" + p.id); if (c) datos[p.id] = c.value.trim();
+  salir($("#q"), () => { i--; pintar(); });
+}
+
+async function enviar(){
+  if (FORMULARIO === "CAMBIAR-SLUG") { $("#error").textContent = "Esta es la plantilla: no recibe respuestas."; return; }
+  if ($("#sitio").value) { terminar(); return; } // bot
+  enviando = true;
+  const btn = $("#siguiente"); btn.disabled = true; btn.textContent = "Enviando…";
+  const fila = { formulario: FORMULARIO, respuestas: {} };
+  PREGUNTAS.forEach(p => {
+    const v = datos[p.id]; if (v === undefined || v === "") return;
+    if (p.columna) fila[p.columna] = v; else fila.respuestas[p.id] = v;
+  });
+  try {
+    const r = await fetch(SUPABASE_URL + "/rest/v1/respuestas", {
+      method:"POST",
+      headers:{ "apikey":SUPABASE_KEY, "Content-Type":"application/json", "Prefer":"return=minimal" },
+      body: JSON.stringify(fila)
+    });
+    if (!r.ok) throw new Error("HTTP " + r.status);
+    terminar();
+  } catch (e) {
+    console.error(e);
+    $("#error").textContent = "No pudimos enviar. Revisa tu conexión y vuelve a intentarlo.";
+    btn.disabled = false; btn.innerHTML = 'Reintentar <span aria-hidden="true">↻</span>';
+    enviando = false;
+  }
+}
+function terminar(){
+  i = PREGUNTAS.length; progreso();
+  const n = (datos.nombre || "").split(" ")[0];
+  $("#gracias-titulo").textContent = n ? `¡Gracias, ${n}!` : "¡Gracias!";
+  salir(vistas.pregunta, () => { mostrar("gracias"); celebrar(); });
+}
+
+$("#empezar").onclick = () => salir(vistas.inicio, () => { i = 0; mostrar("pregunta", $("#q")); pintar(); });
+$("#v-pregunta").addEventListener("submit", e => { e.preventDefault(); avanzar(); });
+$("#atras").onclick = retroceder;
+document.addEventListener("keydown", e => {
+  if (!vistas.inicio.hidden && e.key === "Enter"){ e.preventDefault(); $("#empezar").click(); return; }
+  if (vistas.pregunta.hidden) return;
+  const p = PREGUNTAS[i];
+  if (p && p.tipo === "largo" && e.key === "Enter" && (e.ctrlKey || e.metaKey)){ e.preventDefault(); avanzar(); }
+  if (p && p.tipo === "opciones" && /^[a-z]$/i.test(e.key)){
+    const k = e.key.toUpperCase().charCodeAt(0) - 65;
+    if (p.opciones[k]){ datos[p.id] = p.opciones[k]; avanzar(); }
+  }
+});
+progreso();
+
+/* ===================== MAR ANIMADO ===================== */
+const cv = $("#mar"), ctx = cv.getContext("2d");
+let W, H, dpr, t = 0, oleaje = 0;
+const capas = [
+  { y:.62, amp:22, len:.0042, vel:.35, col:"rgba(18,60,65,.85)" },
+  { y:.70, amp:28, len:.0031, vel:-.25, col:"rgba(22,74,78,.75)" },
+  { y:.78, amp:18, len:.0055, vel:.5,  col:"rgba(30,92,94,.55)" },
+  { y:.86, amp:24, len:.0038, vel:-.4, col:"rgba(244,185,66,.10)" }
+];
+function tam(){
+  dpr = Math.min(devicePixelRatio || 1, 2);
+  W = cv.clientWidth; H = cv.clientHeight;
+  cv.width = W*dpr; cv.height = H*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
+}
+function dibujar(){
+  ctx.clearRect(0,0,W,H);
+  const g = ctx.createRadialGradient(W*.8, H*.12, 0, W*.8, H*.12, Math.max(W,H)*.7);
+  g.addColorStop(0,"rgba(244,185,66,.16)"); g.addColorStop(1,"rgba(244,185,66,0)");
+  ctx.fillStyle = g; ctx.fillRect(0,0,W,H);
+  const subida = (i < 0 ? 0 : Math.min(i+1, PREGUNTAS.length) / PREGUNTAS.length) * .12 + oleaje;
+  capas.forEach((c, n) => {
+    ctx.beginPath();
+    const base = H * (c.y - subida);
+    ctx.moveTo(0, H);
+    for (let x = 0; x <= W + 8; x += 8){
+      const y = base + Math.sin(x*c.len + t*c.vel + n) * c.amp + Math.sin(x*c.len*2.3 - t*c.vel*.7) * c.amp*.35;
+      ctx.lineTo(x, y);
+    }
+    ctx.lineTo(W, H); ctx.closePath();
+    ctx.fillStyle = c.col; ctx.fill();
+  });
+}
+let ultimo = 0;
+function loop(ts){
+  const dt = Math.min((ts - ultimo)/1000, .05); ultimo = ts;
+  t += dt; oleaje *= .96;
+  dibujar(); requestAnimationFrame(loop);
+}
+function celebrar(){ oleaje = reduce ? 0 : .18; }
+addEventListener("resize", () => { tam(); dibujar(); });
+tam();
+if (reduce) dibujar(); else requestAnimationFrame(loop);
+</script>
+</body>
+</html>
