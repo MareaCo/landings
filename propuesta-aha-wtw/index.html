@@ -207,6 +207,20 @@ html:not(.js) .pane{opacity:0}html:not(.js) .pane:last-child{opacity:1}
 .tool{display:flex;flex-direction:column;gap:calc(var(--u)*1.6);min-height:calc(var(--u)*38)}
 .tool .sm{font-size:calc(var(--u)*2.9)}
 .tool .ok{font-size:calc(var(--u)*2.4);font-weight:700;color:var(--blue);margin-top:auto}
+.layers{display:grid;grid-template-columns:repeat(5,1fr);gap:calc(var(--u)*2);margin-top:calc(var(--u)*1)}
+.layer{display:flex;flex-direction:column;gap:calc(var(--u)*1.2)}
+.layer .ln{font-size:calc(var(--u)*6);font-weight:700;line-height:1;color:var(--blue)}
+.layer .sm{font-size:calc(var(--u)*2.8);color:var(--body)}
+.layer.ink .ln{color:var(--sky)}.layer.ink .sm{color:#D6E1EE}
+.layers .layer:nth-child(2){transition-delay:.12s}.layers .layer:nth-child(3){transition-delay:.24s}.layers .layer:nth-child(4){transition-delay:.36s}.layers .layer:nth-child(5){transition-delay:.48s}
+.ms{display:flex;flex-direction:column;gap:calc(var(--u)*1.4)}
+.pilot{margin-top:auto;display:grid;grid-template-columns:calc(var(--u)*44) 1fr;gap:calc(var(--u)*3);align-items:center;background:var(--ink);color:#F3F6FA;border-radius:calc(var(--u)*1.6);padding:calc(var(--u)*2.6) calc(var(--u)*3.4)}
+.pilot .eyebrow{color:var(--sky)}
+.pp{display:grid;grid-template-columns:1fr 1fr;gap:calc(var(--u)*1.2) calc(var(--u)*3)}
+.pp span{font-size:calc(var(--u)*2.8);color:#E6EEF7;padding-left:calc(var(--u)*3.2);position:relative}
+.pp span::before{content:"✓";position:absolute;left:0;color:var(--sky);font-weight:700}
+.chips{display:flex;flex-wrap:wrap;gap:calc(var(--u)*1.2)}
+.chips span{font-size:calc(var(--u)*2.8);font-weight:600;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:99px;padding:calc(var(--u)*.8) calc(var(--u)*2)}
 /* S12 measure */
 .meas{display:flex;flex-direction:column;gap:calc(var(--u)*4.5);margin:auto 0}
 .mrow{display:grid;grid-template-columns:calc(var(--u)*46) 1fr;align-items:center}
@@ -451,16 +465,24 @@ aside.notes{display:none}
 </section>
 
 <!-- 11 -->
-<section class="slide">
-  <div class="head"><p class="eyebrow">Herramientas</p><h2>Sobre lo que WTW ya aprobó</h2></div>
-  <div class="tools">
-    <div class="card tool"><h3>Microsoft 365 Copilot</h3><p class="sm">Resumir, transcribir, conversar con contexto</p><span class="ok">Aprobada</span></div>
-    <div class="card tool"><h3>Copilot Studio</h3><p class="sm">Agentes para tareas repetitivas</p><span class="ok">Aprobada</span></div>
-    <div class="card tool"><h3>Power Automate</h3><p class="sm">Flujos entre correo, formularios y sistemas</p><span class="ok">Aprobada</span></div>
-    <div class="card tool"><h3>Power Apps</h3><p class="sm">Captura estructurada</p><span class="ok">Aprobada</span></div>
-    <div class="card tool"><h3>Python</h3><p class="sm">Cruce y conciliación de datos</p><span class="ok">Aprobada</span></div>
+<section class="slide" style="gap:calc(var(--u)*2.6)">
+  <div class="head"><p class="eyebrow">Herramientas · lo que recomendamos</p><h2>Claude: las cinco capas de la IA en un solo lugar</h2></div>
+  <div class="layers">
+    <div class="card layer" data-step="1"><span class="ln">1</span><h3>Conversar</h3><p class="sm">Chat con contexto para resumir, analizar y redactar</p></div>
+    <div class="card layer" data-step="1"><span class="ln">2</span><h3>Proyectos</h3><p class="sm">Conocimiento del proceso guardado para todo el equipo</p></div>
+    <div class="card layer" data-step="1"><span class="ln">3</span><h3>Código</h3><p class="sm">Cruce y conciliación de datos sin programar</p></div>
+    <div class="card layer" data-step="1"><span class="ln">4</span><h3>Agentes</h3><p class="sm">Tareas de varios pasos de principio a fin</p></div>
+    <div class="card layer ink" data-step="1"><span class="ln">5</span><h3>Automatización</h3><p class="sm">Conectado a Microsoft 365, en lenguaje natural</p></div>
   </div>
-  <aside class="notes">Nada sale de las herramientas corporativas aprobadas. Lo que requiera práctica con datos se hace con datos anonimizados.</aside>
+  <div class="ms" data-step="2">
+    <p class="eyebrow">Y se complementa con lo que WTW ya aprobó</p>
+    <div class="chips"><span>Microsoft 365 Copilot</span><span>Copilot Studio</span><span>Power Automate</span><span>Power Apps</span><span>Python</span></div>
+  </div>
+  <div class="pilot" data-step="3">
+    <div class="col" style="gap:calc(var(--u)*.6)"><p class="eyebrow">Claude Team · piloto</p><h3>Controlado y estructurado</h3></div>
+    <div class="pp"><span>Grupo acotado del programa</span><span>Datos anonimizados</span><span>Reglas de uso y supervisión</span><span>Medido frente a lo ya aprobado</span></div>
+  </div>
+  <aside class="notes">Las cinco capas son las mismas que se enseñan en Despertar: conversar, proyectos, código, agentes y automatización. Claude las cubre todas en un solo lugar, y con Claude Team los datos no se usan para entrenar modelos. Se propone como piloto controlado y estructurado, sujeto a la aprobación de WTW: un grupo acotado, solo datos anonimizados, reglas de uso claras y resultados medidos frente a las herramientas ya aprobadas. El programa no depende de que el piloto se apruebe.</aside>
 </section>
 
 <!-- 12 -->
